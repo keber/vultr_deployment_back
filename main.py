@@ -5,16 +5,27 @@ import os
 import logging
 from dotenv import dotenv_values
 
-config = dotenv_values(".env")
-
-app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-VULTR_API_KEY = os.environ.get("VULTR_API_KEY")
-if not VULTR_API_KEY:
-    logger.critical("VULTR_API_KEY environment var not found. Did you export VULTR_API_KEY=...?")
+env_path = '.env'
+if not os.path.isfile(env_path):
+    logger.critical(f'File {env_path} not found. Make sure it exists in the backend directory and contains the appropiate keys')
     exit(1)
+
+try:
+    config = dotenv_values(".env")
+except Exception as e:
+    logger.critical(f"Couldn't read file {env_path}: {e}")
+    exit(1)
+
+
+VULTR_API_KEY = config.get("VULTR_API_KEY")
+if not VULTR_API_KEY:
+    logger.critical("VULTR_API_KEY not found in .env file.")
+    exit(1)
+
+app = Flask(__name__)
 
 TERRAFORM_DIR = "../vultr_deployment"  # Ruta al directorio donde está el estado de Terraform
 
